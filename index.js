@@ -7,7 +7,7 @@ const tmi = require('tmi.js');
 const FileSync = require('lowdb/adapters/FileSync');
 const lowdb = require('lowdb');
 
-const adapter = new FileSync('db.json');
+const adapter = new FileSync(`${__dirname}/db.json`);
 const db = lowdb(adapter);
 
 // load settings from env
@@ -186,23 +186,51 @@ async function meowify(client, message, channel, username) {
 }
 
 // joins a new channel and saves it to the database
-function joinChannel(client, username) {
+async function joinChannel(client, username) {
   db
     .get('channels')
     .push(`#${username}`)
     .write();
 
-  return client.join(username);
+  return client
+    .join(username)
+    .then(() => {
+      client.whisper(
+        username,
+        `I will now meowify messages in ${username}'s chat'`,
+      );
+    })
+    .catch(err => {
+      client.whisper(
+        username,
+        `Something went cat-astrophic! Message my owner: UpDownLeftDie`,
+      );
+      console.error(`Error joning channel: ${username}`, err);
+    });
 }
 
 // leaves channel and removes it to the database
-function leaveChannel(client, username) {
+async function leaveChannel(client, username) {
   db
     .get('channels')
     .pull(`#${username}`)
     .write();
 
-  return client.leave(username);
+  return client
+    .leave(username)
+    .then(() => {
+      client.whisper(
+        username,
+        `I will no longer meowify messages in ${username}'s chat'`,
+      );
+    })
+    .catch(err => {
+      client.whisper(
+        username,
+        `Something went cat-astrophic! Message my owner: UpDownLeftDie`,
+      );
+      console.error(`Error leaving channel: ${username}`, err);
+    });
 }
 
 async function loadIgnoredUsers() {
