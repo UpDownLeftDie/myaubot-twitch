@@ -35,54 +35,7 @@ if (!BOT_USERNAME) {
 }
 
 // Dictionary of words to catified words
-const WORDS = {
-  'blaze it 420': 'CAT NIP 420',
-  'dillon francis': 'Dillon Furncis',
-  'law and order': 'Claw and Order',
-  'mat zo': 'Meow Zo',
-  'nature box': 'Litter Box',
-  'new zealand': 'Mew Zealand',
-  'porter robinson': 'Purrter Robinson',
-  attitude: 'cattitude',
-  australia: 'Pawstralia',
-  australian: 'Pawstralian',
-  awesome: 'clawsome',
-  bye: 'ta ta for meow',
-  cali: 'calico',
-  california: 'Calicofornia',
-  canada: 'Catnada',
-  catastrophe: 'cat-astrophe',
-  catastrophic: 'cat-astrophic',
-  chowder: 'meowder',
-  collateral: 'catllateral',
-  feelings: 'felines',
-  forget: 'furget',
-  hello: 'konnichipaw',
-  kappa: 'Catta',
-  kidding: 'kitten',
-  luigi: 'Purrigi',
-  lurking: 'waiting to pounce',
-  lying: 'lion',
-  madeon: 'Meowdeon',
-  mario: 'Meowrio',
-  mix: 'Meow Mix',
-  music: 'mewsic',
-  nap: 'catnap',
-  new: 'mew',
-  now: 'meow',
-  pa: 'paw',
-  papa: 'pawpaw',
-  pasta: 'pawsta',
-  pause: 'paws',
-  perfect: 'purrfect',
-  purchase: 'purrchase',
-  sackjuice: 'SaucerMilk',
-  taco: 'tacocat',
-  tale: 'tail',
-  twitter: 'Litter',
-  weed: 'catnip',
-  whiskey: 'whiskers',
-};
+const WORDS = require('./words.json');
 // finds all words that match in the dictionarty, case-insensitive
 const MATCHER = new RegExp(`\\b(?:${Object.keys(WORDS).join('|')})\\b`, 'gi');
 // example: \b(?:now|perfect|pause)\b
@@ -140,7 +93,7 @@ function initalizeTwitchClient() {
           ignoreUser(client, username);
         } else if (message.toLowerCase().indexOf('!patpat') === 0) {
           unignoreUser(client, username);
-        } else {
+        } else if (!checkIfUserIsIgnored(username)) {
           meowify(client, message, channel, username);
         }
         break;
@@ -178,10 +131,7 @@ async function meowify(client, message, channel, username) {
     });
 
     if (newMessage !== message) {
-      const isUserIgnored = checkIfUserIsIgnored(ignoredUsers, username);
-      if (!isUserIgnored) {
-        client.say(channel, newMessage);
-      }
+      client.say(channel, newMessage);
     }
   }
 }
@@ -244,10 +194,11 @@ async function ignoreUser(client, username) {
       .write();
     ignoredUsers = await loadIgnoredUsers();
     isUserIgnored = checkIfUserIsIgnored(username);
+    if (isUserIgnored) {
+      client.whisper(username, `I won't paw at your messages any more :3`);
+    }
   }
-  if (isUserIgnored) {
-    client.whisper(username, `I won't paw at your messages any more :3`);
-  } else {
+  if (!isUserIgnored) {
     client.whisper(
       username,
       `Something went cat-astrophic! Message my owner: UpDownLeftDie`,
