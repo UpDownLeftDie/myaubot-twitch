@@ -3,7 +3,7 @@ const _ = require('lodash');
 if (_.get(process, 'env.NODE_ENV') !== 'production') {
   require('dotenv').load();
 }
-const tmi = require('tmi.js');
+const TwitchJS = require('twitch-js');
 const FileSync = require('lowdb/adapters/FileSync');
 const lowdb = require('lowdb');
 
@@ -92,13 +92,13 @@ db.defaults({ channels: ['#myaubot'], ignoredUsers: [] }).write();
 let ignoredUsers = [];
 loadIgnoredUsers().then(results => {
   ignoredUsers = results;
-  initalizeTmiClient();
+  initalizeTwitchClient();
 });
 
-function initalizeTmiClient() {
+function initalizeTwitchClient() {
   const channels = db.get('channels').value();
 
-  const tmiOptions = {
+  const twitchClientOptions = {
     options: {
       debug: false,
     },
@@ -112,7 +112,7 @@ function initalizeTmiClient() {
     channels: channels,
   };
 
-  const client = new tmi.client(tmiOptions);
+  const client = new TwitchJS.client(twitchClientOptions);
 
   // Check messages that are posted in twitch chat
   client.on('message', async (channel, userstate, message, self) => {
@@ -188,8 +188,7 @@ async function meowify(client, message, channel, username) {
 
 // joins a new channel and saves it to the database
 async function joinChannel(client, username) {
-  db
-    .get('channels')
+  db.get('channels')
     .push(`#${username}`)
     .write();
 
@@ -212,8 +211,7 @@ async function joinChannel(client, username) {
 
 // leaves channel and removes it to the database
 async function leaveChannel(client, username) {
-  db
-    .get('channels')
+  db.get('channels')
     .pull(`#${username}`)
     .write();
 
@@ -241,8 +239,7 @@ async function loadIgnoredUsers() {
 async function ignoreUser(client, username) {
   let isUserIgnored = checkIfUserIsIgnored(username);
   if (!isUserIgnored) {
-    db
-      .get('ignoredUsers')
+    db.get('ignoredUsers')
       .push(username)
       .write();
     ignoredUsers = await loadIgnoredUsers();
@@ -259,8 +256,7 @@ async function ignoreUser(client, username) {
 }
 
 async function unignoreUser(client, username) {
-  db
-    .get('ignoredUsers')
+  db.get('ignoredUsers')
     .pull(username)
     .write();
   ignoredUsers = await loadIgnoredUsers();
