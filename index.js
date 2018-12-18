@@ -11,10 +11,12 @@ const adapter = new FileSync(`${__dirname}/db.json`);
 const db = lowdb(adapter);
 
 // load settings from env
-const { BOT_USERNAME, BOT_OAUTH, SUCCESS_RATE, WORD_SUCCESS_RATE } = _.get(
-  process,
-  'env',
-);
+const {
+  BOT_USERNAME,
+  BOT_OAUTH,
+  BASE_SUCCESS_RATE,
+  WORD_GROWTH_SUCCESS_RATE,
+} = _.get(process, 'env');
 console.log(BOT_USERNAME);
 if (!BOT_USERNAME) {
   // should be a twitch username
@@ -24,13 +26,13 @@ if (!BOT_USERNAME) {
   // should be an oauth for the account above
   console.error('MISSING PASSWORD');
   return;
-} else if (!SUCCESS_RATE) {
+} else if (!BASE_SUCCESS_RATE) {
   // should be a precent in decimal form
-  console.error('MISSING SUCCESS_RATE');
+  console.error('MISSING BASE_SUCCESS_RATE');
   return;
-} else if (!WORD_SUCCESS_RATE) {
+} else if (!WORD_GROWTH_SUCCESS_RATE) {
   // should be a precent in decimal form
-  console.error('MISSING WORD_SUCCESS_RATE');
+  console.error('MISSING WORD_GROWTH_SUCCESS_RATE');
   return;
 }
 
@@ -94,7 +96,7 @@ function initalizeTwitchClient() {
         } else if (message.toLowerCase().indexOf('!patpat') === 0) {
           unignoreUser(client, username);
         } else if (!checkIfUserIsIgnored(username)) {
-          meowify(client, message, channel, username);
+          meowify(client, message, channel);
         }
         break;
       case 'whisper':
@@ -118,19 +120,19 @@ function initalizeTwitchClient() {
   client.connect();
 }
 
-async function meowify(client, message, channel, username) {
-  if (SUCCESS_RATE - Math.random() < 0) {
-    return;
-  } else if (MATCHER.test(message)) {
+async function meowify(client, message, channel) {
+  const matchCount = ((message || '').match(MATCHER) || []).length;
+  // const matcherTestResults = MATCHER.test(message);
+  if (matchCount > 0) {
     const newMessage = message.replace(MATCHER, function(match) {
-      if (WORD_SUCCESS_RATE - Math.random() > 0) {
-        return WORDS[match.toLowerCase()];
-      } else {
-        return match;
-      }
+      return WORDS[match.toLowerCase()];
     });
 
-    if (newMessage !== message) {
+    const a = BASE_SUCCESS_RATE / WORD_GROWTH_SUCCESS_RATE;
+    const b = WORD_GROWTH_SUCCESS_RATE;
+    const x = matchCount;
+    const successRate = a * Math.pow(b, x);
+    if (newMessage !== message && successRate - Math.random() > 0) {
       client.say(channel, newMessage);
     }
   }
