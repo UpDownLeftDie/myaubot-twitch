@@ -23,10 +23,8 @@ MyauBot needs several environment variables
 
   - Example: `oauth:12345asdf`
 
-- `BASE_SUCCESS_RATE` The chance a message with a single match will be converted. It's `a` this function `y = ab^x` when `x = 1`
-
-  - Example: `0.1`
+- `BASE_SUCCESS_RATE` The chance a message with a single match will be converted. It's `a` this function `y = ab^x`
 
 - `WORD_GROWTH_SUCCESS_RATE` The growth factor for each additional word. It's `b` this function `y = ab^x`
 
-  - Example: `2`
+- Example: When `BASE_SUCCESS_RATE = 0.1` and `WORD_GROWTH_SUCCESS_RATE = 2`: For a single word `y = (0.1)(2)^(1) = .2` there is a 20% chance of converting a message.
