@@ -124,7 +124,7 @@ async function joinChannel(client, username) {
     .then(() => {
       client.whisper(
         username,
-        `I will now meowify messages in ${username}'s chat'`,
+        `I will now meowify messages in ${username}'s chat`,
       );
     })
     .catch((err) => {
